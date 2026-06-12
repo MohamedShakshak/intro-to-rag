@@ -1,4 +1,4 @@
-from ingest import load_faq_data, build_index
+from .ingest import load_faq_data, build_index
 
 documents = load_faq_data()
 index = build_index(documents)
@@ -86,6 +86,23 @@ class RAGBase:
         answer = self.llm(prompt)
         return answer
     
+
+
+class RAGVector(RAGBase):
+
+    def __init__(self, embedder, **kwargs):
+        super().__init__(**kwargs)
+        self.embedder = embedder
+
+    def search(self, query, num_results=5):
+        query_vector = self.embedder.encode(query)
+        filter_dict = {"course": self.course}
+
+        return self.index.search(
+            query_vector,
+            num_results=num_results,
+            filter_dict=filter_dict
+        )
 
 class ElasticRAG(RAGBase):
     def search(self, query, num_results=5):
